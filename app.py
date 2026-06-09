@@ -10,7 +10,8 @@ API_URL = "https://api.game4station.com/api/checkNameEl"
 
 HEADERS = {
     "Content-Type": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Origin": "https://game4station.com",
     "Referer": "https://game4station.com/",
 }
@@ -30,13 +31,22 @@ def get_player():
     payload = {"game": "pubgm", "userId": player_id, "serverId": None}
     try:
         res = requests.post(API_URL, headers=HEADERS, json=payload, timeout=15)
-        data = res.json()
+        try:
+            data = res.json()
+        except ValueError:
+            return jsonify({
+                "error": "الرد ليس JSON",
+                "debug_status": res.status_code,
+                "debug_body": res.text[:500]
+            }), 502
+
         if data.get("status") == "OK":
             info = data.get("data", {})
             if info.get("valid") == "valid":
                 return jsonify({"name": info.get("name", "غير معروف"), "id": player_id})
             return jsonify({"error": "اللاعب غير موجود — تأكد من الـ ID"}), 404
-        return jsonify({"error": "لم يتم العثور على اللاعب"}), 404
+        return jsonify({"error": "لم يتم العثور على اللاعب", "debug": data}), 404
+
     except requests.exceptions.Timeout:
         return jsonify({"error": "انتهت مهلة الاتصال"}), 504
     except requests.exceptions.ConnectionError:
