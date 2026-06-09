@@ -6,13 +6,13 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder="static")
 CORS(app)
 
-MIDASBUY_URL = "https://www.midasbuy.com/midasbuy/ot/query/user"
+API_URL = "https://api.game4station.com/api/checkNameEl"
 
 HEADERS = {
+    "Content-Type": "application/json",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
-    "Referer":    "https://www.midasbuy.com/midasbuy/us/buy/pubgm",
-    "Accept":     "application/json, text/plain, */*",
-    "Origin":     "https://www.midasbuy.com",
+    "Origin": "https://game4station.com",
+    "Referer": "https://game4station.com/",
 }
 
 @app.route("/")
@@ -27,23 +27,22 @@ def get_player():
     if not player_id.isdigit():
         return jsonify({"error": "الـ ID يجب أن يكون أرقاماً فقط"}), 400
 
-    params = {"game": "PUBGM", "uid": player_id, "checkNum": ""}
+    payload = {"game": "pubgm", "userId": player_id, "serverId": None}
     try:
-        res = requests.get(MIDASBUY_URL, params=params, headers=HEADERS, timeout=10)
+        res = requests.post(API_URL, headers=HEADERS, json=payload, timeout=15)
         data = res.json()
-        ret_code = data.get("retCode", -1)
-        if ret_code == 0:
+        if data.get("status") == "OK":
             info = data.get("data", {})
-            name = info.get("username") or info.get("name") or info.get("nickName", "")
-            if not name:
-                return jsonify({"error": "لم يتم العثور على الاسم"}), 404
-            return jsonify({"name": name, "id": player_id})
-        elif ret_code in [10006, 10001]:
+            if info.get("valid") == "valid":
+                return jsonify({"name": info.get("name", "غير معروف"), "id": player_id})
             return jsonify({"error": "اللاعب غير موجود — تأكد من الـ ID"}), 404
-        else:
-            return jsonify({"error": f"خطأ من Midasbuy: {ret_code}"}), 400
+        return jsonify({"error": "لم يتم العثور على اللاعب"}), 404
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "انتهت مهلة الاتصال"}), 504
+    except requests.exceptions.ConnectionError:
+        return jsonify({"error": "فشل الاتصال بالخادم"}), 502
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"خطأ: {str(e)}"}), 500
 
 @app.route("/health")
 def health():
