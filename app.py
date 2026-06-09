@@ -7,14 +7,7 @@ app = Flask(__name__, static_folder="static")
 CORS(app)
 
 API_URL = "https://api.game4station.com/api/checkNameEl"
-
-HEADERS = {
-    "Content-Type": "application/json",
-    "Accept": "application/json, text/plain, */*",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Origin": "https://game4station.com",
-    "Referer": "https://game4station.com/",
-}
+TOKEN   = os.environ.get("G4S_TOKEN", "")
 
 @app.route("/")
 def index():
@@ -27,18 +20,25 @@ def get_player():
         return jsonify({"error": "أدخل الـ Player ID"}), 400
     if not player_id.isdigit():
         return jsonify({"error": "الـ ID يجب أن يكون أرقاماً فقط"}), 400
+    if not TOKEN:
+        return jsonify({"error": "G4S_TOKEN غير موجود في متغيرات البيئة"}), 500
 
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "Authorization": f"Bearer {TOKEN}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+        "Origin": "https://game4station.com",
+        "Referer": "https://game4station.com/",
+    }
     payload = {"game": "pubgm", "userId": player_id, "serverId": None}
+
     try:
-        res = requests.post(API_URL, headers=HEADERS, json=payload, timeout=15)
+        res = requests.post(API_URL, headers=headers, json=payload, timeout=15)
         try:
             data = res.json()
         except ValueError:
-            return jsonify({
-                "error": "الرد ليس JSON",
-                "debug_status": res.status_code,
-                "debug_body": res.text[:500]
-            }), 502
+            return jsonify({"error": "الرد ليس JSON", "debug_status": res.status_code, "debug_body": res.text[:300]}), 502
 
         if data.get("status") == "OK":
             info = data.get("data", {})
