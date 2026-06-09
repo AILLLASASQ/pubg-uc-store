@@ -1,3 +1,4 @@
+cat > static/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6,287 +7,98 @@
   <title>UC Store — جلب اسم اللاعب</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap');
-
-    :root {
-      --bg:        #0a0b0d;
-      --surface:   #111317;
-      --border:    #2a2d35;
-      --gold:      #f5a623;
-      --gold-dark: #c4821a;
-      --text:      #e8eaf0;
-      --muted:     #7a7f8e;
-      --error:     #e05252;
-      --success:   #4caf7d;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Sans Arabic', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-    }
-
-    .header { text-align: center; margin-bottom: 36px; }
-    .header-eyebrow {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 11px;
-      letter-spacing: 3px;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .header h1 {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(28px, 6vw, 44px);
-      font-weight: 700;
-      color: #fff;
-    }
-    .header h1 span { color: var(--gold); }
-
-    .card {
-      width: 100%;
-      max-width: 500px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 32px 28px;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-dark));
-    }
-
-    .section-label {
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-      font-family: 'Rajdhani', sans-serif;
-    }
-
-    .input-group { margin-bottom: 20px; }
-
-    input[type="text"] {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 13px 16px;
-      font-size: 14px;
-      font-family: 'IBM Plex Sans Arabic', sans-serif;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
-      direction: ltr;
-      text-align: left;
-    }
-    input[type="text"]:focus { border-color: var(--gold); }
-    input::placeholder { color: var(--muted); font-size: 13px; }
-
-    .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
-
-    .platforms {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .platform-btn {
-      flex: 1;
-      min-width: 80px;
-      padding: 9px 10px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'IBM Plex Sans Arabic', sans-serif;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
-    }
-    .platform-btn:hover { border-color: var(--gold); color: var(--text); }
-    .platform-btn.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: rgba(245,166,35,0.07);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-      border: none;
-      border-radius: 8px;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: #000;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      text-transform: uppercase;
-    }
-    .btn:hover { opacity: 0.9; }
-    .btn:active { transform: scale(0.98); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    .result-box {
-      margin-top: 20px;
-      padding: 18px 16px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      display: none;
-      align-items: center;
-      gap: 14px;
-    }
-    .result-box.show  { display: flex; }
-    .result-box.error   { border-color: var(--error); }
-    .result-box.success { border-color: var(--success); }
-
-    .result-icon { font-size: 28px; flex-shrink: 0; }
-    .result-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--gold);
-    }
-    .result-sub  { font-size: 12px; color: var(--muted); margin-top: 3px; }
-    .result-msg  { font-size: 14px; color: var(--error); line-height: 1.5; }
-
-    .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(0,0,0,0.25);
-      border-top-color: #000;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-left: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .note { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+    :root { --bg:#0a0b0d; --surface:#111317; --border:#2a2d35; --gold:#f5a623; --gold-dark:#c4821a; --text:#e8eaf0; --muted:#7a7f8e; --error:#e05252; --success:#4caf7d; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Arabic',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px}
+    .header{text-align:center;margin-bottom:36px}
+    .header-eyebrow{font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+    .header h1{font-family:'Rajdhani',sans-serif;font-size:clamp(28px,6vw,44px);font-weight:700;color:#fff}
+    .header h1 span{color:var(--gold)}
+    .header-badge{display:inline-block;margin-top:10px;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--gold);letter-spacing:1px}
+    .card{width:100%;max-width:480px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px 28px;position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-dark))}
+    .section-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:'Rajdhani',sans-serif}
+    .input-group{margin-bottom:22px}
+    input[type=text]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:13px 16px;font-size:15px;font-family:'IBM Plex Sans Arabic',sans-serif;color:var(--text);outline:none;transition:border-color .2s;direction:ltr;text-align:left;letter-spacing:1px}
+    input[type=text]:focus{border-color:var(--gold)}
+    input::placeholder{color:var(--muted);font-size:13px;letter-spacing:0}
+    .note{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.6}
+    .btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;color:#000;cursor:pointer;transition:opacity .2s,transform .1s;text-transform:uppercase}
+    .btn:hover{opacity:.9}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.45;cursor:not-allowed}
+    .result-box{margin-top:20px;padding:18px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg);display:none;align-items:center;gap:14px}
+    .result-box.show{display:flex}.result-box.error{border-color:var(--error)}.result-box.success{border-color:var(--success)}
+    .result-icon{font-size:28px;flex-shrink:0}
+    .result-name{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;color:var(--gold)}
+    .result-sub{font-size:12px;color:var(--muted);margin-top:3px}
+    .result-msg{font-size:14px;color:var(--error);line-height:1.5}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .how-to{margin-top:20px;padding:14px 16px;background:rgba(245,166,35,.04);border:1px solid rgba(245,166,35,.15);border-radius:8px}
+    .how-to-title{font-size:12px;color:var(--gold);margin-bottom:8px;font-family:'Rajdhani',sans-serif;letter-spacing:1px}
+    .how-to p{font-size:12px;color:var(--muted);line-height:1.7}
   </style>
 </head>
 <body>
-
   <div class="header">
-    <div class="header-eyebrow">PUBG Developer API</div>
+    <div class="header-eyebrow">PUBG Mobile</div>
     <h1>جلب اسم <span>اللاعب</span></h1>
+    <div class="header-badge">🎮 PUBG Mobile · UC Store</div>
   </div>
-
   <div class="card">
-
-    <!-- Platform -->
-    <div class="section-label">المنصة</div>
-    <div class="platforms" id="platforms">
-      <button class="platform-btn active" data-shard="steam">PC (Steam)</button>
-      <button class="platform-btn" data-shard="psn">PlayStation</button>
-      <button class="platform-btn" data-shard="xbox">Xbox</button>
-      <button class="platform-btn" data-shard="kakao">Kakao</button>
-    </div>
-
-    <!-- Player ID -->
     <div class="input-group">
       <div class="section-label">Player ID</div>
-      <input type="text" id="playerId"
-             placeholder="account.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
-      <p class="note">الـ ID يبدأ عادةً بـ account. — تجده في إعدادات حسابك داخل اللعبة</p>
+      <input type="text" id="playerId" placeholder="5123456789" inputmode="numeric" />
+      <p class="note">أدخل الـ ID الرقمي فقط — بدون أي رمز أو حرف<br>مثال: <strong style="color:var(--text)">5123456789</strong></p>
     </div>
-
-    <button class="btn" id="searchBtn" onclick="searchPlayer()">
-      بحث عن الاسم
-    </button>
-
+    <button class="btn" id="searchBtn" onclick="searchPlayer()">بحث عن الاسم</button>
     <div class="result-box" id="resultBox">
       <div class="result-icon" id="resultIcon"></div>
       <div>
         <div class="result-name" id="resultName"></div>
-        <div class="result-sub"  id="resultSub"></div>
-        <div class="result-msg"  id="resultMsg"></div>
+        <div class="result-sub" id="resultSub"></div>
+        <div class="result-msg" id="resultMsg"></div>
       </div>
     </div>
-
+    <div class="how-to">
+      <div class="how-to-title">📌 كيف أجد الـ Player ID؟</div>
+      <p>افتح PUBG Mobile ← اضغط على صورتك الشخصية<br>الـ ID الرقمي يظهر تحت اسمك مباشرة</p>
+    </div>
   </div>
-
   <script>
-    let selectedShard = 'steam';
-
-    document.querySelectorAll('.platform-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedShard = btn.dataset.shard;
-      });
-    });
-
-    document.getElementById('playerId').addEventListener('keydown', e => {
-      if (e.key === 'Enter') searchPlayer();
-    });
-
-    async function searchPlayer() {
-      const playerId = document.getElementById('playerId').value.trim();
-      const btn      = document.getElementById('searchBtn');
-      const box      = document.getElementById('resultBox');
-
-      // Reset
-      box.className = 'result-box';
-      ['resultName','resultSub','resultMsg'].forEach(id =>
-        document.getElementById(id).textContent = '');
-
-      if (!playerId) return showError('أدخل الـ Player ID أولاً');
-
-      btn.disabled = true;
-      btn.innerHTML = 'جاري البحث <span class="spinner"></span>';
-
-      try {
-        // يتكلم مع السيرفر الخاص بنا (Flask) مو مع PUBG مباشرة
-        const res  = await fetch(`/api/player?id=${encodeURIComponent(playerId)}&shard=${selectedShard}`);
-        const data = await res.json();
-
-        if (!res.ok) {
-          return showError(data.error || `خطأ ${res.status}`);
-        }
-
-        showSuccess(data.name, data.shard);
-
-      } catch (err) {
-        showError('فشل الاتصال بالسيرفر — تأكد من أن التطبيق يعمل');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'بحث عن الاسم';
-      }
+    document.getElementById('playerId').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlayer()});
+    async function searchPlayer(){
+      const playerId=document.getElementById('playerId').value.trim();
+      const btn=document.getElementById('searchBtn');
+      const box=document.getElementById('resultBox');
+      box.className='result-box';
+      ['resultName','resultSub','resultMsg'].forEach(id=>document.getElementById(id).textContent='');
+      if(!playerId)return showError('أدخل الـ Player ID أولاً');
+      if(!/^\d+$/.test(playerId))return showError('الـ ID يجب أن يكون أرقاماً فقط');
+      btn.disabled=true;btn.innerHTML='جاري البحث <span class="spinner"></span>';
+      try{
+        const res=await fetch(`/api/player?id=${encodeURIComponent(playerId)}`);
+        const data=await res.json();
+        if(!res.ok)return showError(data.error||`خطأ ${res.status}`);
+        showSuccess(data.name,data.id);
+      }catch(err){showError('فشل الاتصال بالسيرفر');}
+      finally{btn.disabled=false;btn.innerHTML='بحث عن الاسم';}
     }
-
-    function showSuccess(name, shard) {
-      const box = document.getElementById('resultBox');
-      box.className = 'result-box show success';
-      document.getElementById('resultIcon').textContent = '✅';
-      document.getElementById('resultName').textContent = name;
-      document.getElementById('resultSub').textContent  = `المنصة: ${shard}`;
+    function showSuccess(name,id){
+      const box=document.getElementById('resultBox');
+      box.className='result-box show success';
+      document.getElementById('resultIcon').textContent='✅';
+      document.getElementById('resultName').textContent=name;
+      document.getElementById('resultSub').textContent=`ID: ${id}`;
     }
-
-    function showError(msg) {
-      const box = document.getElementById('resultBox');
-      box.className = 'result-box show error';
-      document.getElementById('resultIcon').textContent = '⚠️';
-      document.getElementById('resultMsg').textContent  = msg;
+    function showError(msg){
+      const box=document.getElementById('resultBox');
+      box.className='result-box show error';
+      document.getElementById('resultIcon').textContent='⚠️';
+      document.getElementById('resultMsg').textContent=msg;
+      document.getElementById('searchBtn').disabled=false;
+      document.getElementById('searchBtn').innerHTML='بحث عن الاسم';
     }
   </script>
 </body>
 </html>
+HTMLEOF
