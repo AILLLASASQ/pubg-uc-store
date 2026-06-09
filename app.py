@@ -1,4 +1,3 @@
-cat > app.py << 'EOF'
 import os
 import requests
 from flask import Flask, request, jsonify, send_from_directory
@@ -30,7 +29,7 @@ def get_player():
 
     params = {"game": "PUBGM", "uid": player_id, "checkNum": ""}
     try:
-        res  = requests.get(MIDASBUY_URL, params=params, headers=HEADERS, timeout=10)
+        res = requests.get(MIDASBUY_URL, params=params, headers=HEADERS, timeout=10)
         data = res.json()
         ret_code = data.get("retCode", -1)
         if ret_code == 0:
@@ -53,4 +52,3 @@ def health():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-EOF
